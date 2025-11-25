@@ -1,6 +1,7 @@
 #pragma once
 #include "esphome/core/component.h"
 #include "esphome/core/sensor.h"
+#include "esphome/core/binary_sensor.h"
 #include "BMI160Gen.h"
 
 namespace esphome {
@@ -8,7 +9,7 @@ namespace bmi160 {
 
 class BMI160Component : public PollingComponent {
  public:
-  // Sensor objects
+  // Numeric sensors
   Sensor *accel_x = new Sensor();
   Sensor *accel_y = new Sensor();
   Sensor *accel_z = new Sensor();
@@ -21,7 +22,15 @@ class BMI160Component : public PollingComponent {
   Sensor *temperature = new Sensor();
   Sensor *vibration   = new Sensor();
 
-  BMI160Component() : PollingComponent(50) {} // 20Hz Update
+  // Alerts
+  BinarySensor *tilt_alert = new BinarySensor();
+  BinarySensor *motion_alert = new BinarySensor();
+
+  // User configuration values
+  float tilt_threshold_deg = 10.0f;
+  float motion_threshold_ms2 = 1.0f;
+
+  BMI160Component() : PollingComponent(50) {}
 
   void setup() override;
   void update() override;
