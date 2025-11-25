@@ -9,13 +9,13 @@ void BMI160Component::setup() {
   delay(100);
 
   if (!BMI160.begin(BMI160GenClass::I2C_MODE, 0x69)) {
-    ESP_LOGE("bmi160", "BMI160 init failed at 0x69, trying 0x68...");
+    ESP_LOGW("bmi160", "0x69 not found - trying 0x68");
     if (!BMI160.begin(BMI160GenClass::I2C_MODE, 0x68)) {
-      ESP_LOGE("bmi160", "BMI160 init failed at 0x68 - Sensor not found!");
+      ESP_LOGE("bmi160", "BMI160 not detected on I2C (0x68/0x69)");
       return;
     }
   }
-  ESP_LOGI("bmi160", "BMI160 initialized successfully!");
+  ESP_LOGI("bmi160", "BMI160 initialized");
 }
 
 void BMI160Component::update() {
@@ -25,6 +25,7 @@ void BMI160Component::update() {
 
   float temp = BMI160.readTemperature() / 512.0f + 23.0f;
 
+  // Convert accel to m/s²
   float ax_ms = ax * 9.80665f;
   float ay_ms = ay * 9.80665f;
   float az_ms = az * 9.80665f;
@@ -36,17 +37,30 @@ void BMI160Component::update() {
   gyro_y->publish_state(gy);
   gyro_z->publish_state(gz);
 
-  float pitch_val = atan2(-ax, sqrt(ay * ay + az * az)) * 180.0f / M_PI;
+  // Angles
+  float pitch_val = atan2(-ax, sqrtf(ay*ay + az*az)) * 180.0f / M_PI;
   float roll_val  = atan2(ay, az) * 180.0f / M_PI;
-  float incl_val = acos(ax / sqrt(ax * ax + ay * ay + az * az)) * 180.0f / M_PI;
+  float incl_val  = acosf(ax / sqrtf(ax*ax + ay*ay + az*az)) * 180.0f / M_PI;
 
   pitch->publish_state(pitch_val);
   roll->publish_state(roll_val);
   incl->publish_state(incl_val);
   temperature->publish_state(temp);
 
-  float vib = fabs(sqrt(ax_ms*ax_ms + ay_ms*ay_ms + az_ms*az_ms) - 9.80665f);
+  // Vibration
+  float vib = fabsf(sqrtf(ax_ms*ax_ms + ay_ms*ay_ms + az_ms*az_ms) - 9.80665f);
   vibration->publish_state(vib);
+
+  // Tilt alarm
+  tilt_alert->publish_state(
+      fabsf(pitch_val) > tilt_threshold_deg ||
+      fabsf(roll_val)  > tilt_threshold_deg
+  );
+
+  // Motion alarm
+  motion_alert->publish_state(
+      vib > motion_threshold_ms2
+  );
 }
 
 }  // namespace bmi160
