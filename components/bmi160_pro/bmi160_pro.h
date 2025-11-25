@@ -5,11 +5,11 @@
 #include "BMI160Gen.h"
 
 namespace esphome {
-namespace bmi160_advanced {
+namespace bmi160_pro {
 
-class BMI160Advanced : public PollingComponent {
+class BMI160Pro : public PollingComponent {
  public:
-  // Numeric sensors
+  // Raw sensors
   Sensor *accel_x = new Sensor();
   Sensor *accel_y = new Sensor();
   Sensor *accel_z = new Sensor();
@@ -26,15 +26,15 @@ class BMI160Advanced : public PollingComponent {
   BinarySensor *tilt_alert = new BinarySensor();
   BinarySensor *motion_alert = new BinarySensor();
 
-  // User config
-  float tilt_threshold_deg = 10.0f;
-  float motion_threshold_ms2 = 1.0f;
+  // Config values
+  float tilt_threshold_deg = 10.0f;        // Default angle threshold
+  float motion_threshold_ms2 = 1.0f;       // Default vibration threshold
 
-  BMI160Advanced() : PollingComponent(50) {}
+  BMI160Pro() : PollingComponent(50) {}    // 50ms update (20Hz)
 
   void setup() override;
   void update() override;
 };
 
-}  // namespace bmi160_advanced
+}  // namespace bmi160_pro
 }  // namespace esphome
