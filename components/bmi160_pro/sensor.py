@@ -3,11 +3,11 @@ import esphome.config_validation as cv
 from esphome.components import sensor, binary_sensor
 from esphome.const import CONF_ID
 
-# Namespace zu deiner C++ Klasse
+# Namespace mit deiner C++ Klasse
 bmi160_pro_ns = cg.esphome_ns.namespace("bmi160_pro")
 BMI160Pro = bmi160_pro_ns.class_("BMI160Pro", cg.PollingComponent)
 
-# Konfigurationsschema (YAML → Validierung)
+# YAML-Schema, definiert erlaubte Optionen
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(BMI160Pro),
@@ -33,16 +33,16 @@ CONFIG_SCHEMA = cv.Schema(
 ).extend(cv.COMPONENT_SCHEMA)
 
 
-# Verknüpft ESPHome-YAML mit der C++ Klasse
+# Verbindet die Python-Seite mit deinem C++ Code
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    # -- Thresholds setzen (Aufruf als C++ Codezeile!) --
-    cg.add(f"{var}.tilt_threshold_deg = {config['tilt_threshold_deg']};")
-    cg.add(f"{var}.motion_threshold_ms2 = {config['motion_threshold_ms2']};")
+    # Thresholds als Raw Expressions setzen (Zeiger "->" ist Pflicht!)
+    cg.add(cg.RawExpression(f"{var}->tilt_threshold_deg = {config['tilt_threshold_deg']};"))
+    cg.add(cg.RawExpression(f"{var}->motion_threshold_ms2 = {config['motion_threshold_ms2']};"))
 
-    # Sensors
+    # Sensors als Ausgabe verknüpfen
     for key in [
         "accel_x", "accel_y", "accel_z",
         "gyro_x", "gyro_y", "gyro_z",
@@ -53,7 +53,7 @@ async def to_code(config):
             sens = await sensor.new_sensor(config[key])
             cg.add(getattr(var, key), sens)
 
-    # Alarme als Binary Sensoren
+    # Binary-Sensor-Ausgänge verknüpfen
     for key in ["tilt_alert", "motion_alert"]:
         if key in config:
             bs = await binary_sensor.new_binary_sensor(config[key])
