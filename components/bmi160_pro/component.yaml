@@ -1,9 +1,0 @@
-name: "bmi160_pro"
-version: "1.0.0"
-
-files:
-  - bmi160_pro.cpp
-  - bmi160_pro.h
-
-required_libraries:
-  - "BMI160Gen"
