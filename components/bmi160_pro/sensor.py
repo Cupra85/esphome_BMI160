@@ -2,6 +2,12 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.components.sensor as es_sensor
 import esphome.components.binary_sensor as es_bsensor
+
+# Force load of core modules without component.yaml
+import esphome.components.binary_sensor
+import esphome.components.sensor
+import esphome.components.i2c
+
 from esphome.const import CONF_ID
 
 bmi160_pro_ns = cg.esphome_ns.namespace("bmi160_pro")
